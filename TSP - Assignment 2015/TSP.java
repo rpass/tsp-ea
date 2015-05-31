@@ -104,19 +104,19 @@ public class TSP {
 
     public static void evolve() {
         //Write evolution code here.
-        int parentSelectionPressure = 20;
-        matingPopulationSize = 300;
+        int numberOfParents = (int)((1/2.0) * populationSize);
+        matingPopulationSize = 450;
 
         // Create random population
     	Chromosome[] newPop = createPopulation(matingPopulationSize, cities);
 
     	// Choose parents from chromosomes
-        int[][] parents = elitestParentSelection(parentSelectionPressure);
+        int[][] parents = tournamentParentSelection(numberOfParents);
 
 
         int[][] newGenes = Chromosome.crossfillRecombination(parents, matingPopulationSize);
         modifyPopulation(newPop, newGenes);
-        chromosomes = eliteSurvivorSelection(newPop);
+        chromosomes = tournamentSurvivorSelection(newPop);
     }
 
     public static Chromosome[] createPopulation(int size, City[] cities){
@@ -201,7 +201,7 @@ public class TSP {
     	return(parents);
     }
 
-    public static Chromosome[] eliteSurvivorSelection(Chromosome[] competingChromosomes){
+    public static Chromosome[] elitestSurvivorSelection(Chromosome[] competingChromosomes){
     	Chromosome.sortChromosomes(competingChromosomes, competingChromosomes.length);
     	Chromosome[] survivors = new Chromosome[populationSize];
     	for (int i = 0; i < populationSize ; i++) {
@@ -215,6 +215,72 @@ public class TSP {
   //   	}
     	return(survivors);
     }
+
+    public static int[][] tournamentParentSelection(int numberOfParents){
+
+    	int selectionPressure = 5;
+    	Chromosome[] champions = tournamentSelection(chromosomes, selectionPressure, numberOfParents);
+
+    	int[][] parentGenes = new int[numberOfParents][cities.length];
+    	for (int i = 0; i < numberOfParents; i++) {
+    		parentGenes[i] = champions[i].cityList;
+    	}
+    	return(parentGenes);
+    }
+
+    public static Chromosome[] tournamentSurvivorSelection(Chromosome[] competingChromosomes){
+    	int[] candidates = new int[competingChromosomes.length];
+    	for (int i = 0; i < candidates.length ; i++) {
+    		candidates[i] = i;
+    	}
+    	int selectionPressure = 5;
+    	int numberOfChampions = populationSize;
+
+    	Chromosome[] champions = tournamentSelection(competingChromosomes, selectionPressure, numberOfChampions);
+
+    	return(champions);
+    }
+
+	public static Chromosome[] tournamentSelection(Chromosome[] candidateChromosomes, int selectionPressure, int numberOfChampions){
+		System.out.println("candidate pool: " + candidateChromosomes.length);
+		
+		// keeps track of candidates already chosen
+		boolean[] picked = new boolean[candidateChromosomes.length];
+		Arrays.fill(picked, false);
+
+		Chromosome[] champions = new Chromosome[numberOfChampions];
+		int[] arena = new int[selectionPressure];
+
+		int random;
+		Chromosome champion;
+
+		for (int i = 0; i < numberOfChampions; i++ ) {
+			for (int j = 0; j < selectionPressure; j++ ) {
+				random = (int)(Math.random()*candidateChromosomes.length);
+				while(picked[random]){
+					random = (int)(Math.random()*candidateChromosomes.length);
+					//System.out.println("dam");
+				}
+				arena[j] = random;
+			}
+
+			double lowestCost = 300000.0;
+			champion = candidateChromosomes[arena[0]];
+			int pickedcompetitor = 0;
+			for (int competitor : arena) {
+				double cost = candidateChromosomes[competitor].getCost();
+				if(cost < lowestCost){
+					champion = candidateChromosomes[competitor];
+					lowestCost = cost;
+					pickedcompetitor = competitor;
+				}
+			}
+			champions[i] = champion;
+			picked[pickedcompetitor] = true;
+		}
+
+		return(champions);
+	}
 
     /**
      * Update the display
