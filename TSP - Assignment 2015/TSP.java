@@ -104,34 +104,72 @@ public class TSP {
 
     public static void evolve() {
         //Write evolution code here.
+        int parentSelectionPressure = 20;
+        matingPopulationSize = 300;
 
-        // Format from Slides:
-        // EVALUATE  each candidate in initial population
-        // REPEAT UNTIL X (WHILE GENERATION < 100 - already outside evolve)
-        // SELECT parents
-        // RECOMBINE pairs of parents
-        // MUTATE the offspring
-        // EVALUATE new candidates
-        // SELECT individuals for next generation
+        // Create random population
+    	Chromosome[] newPop = createPopulation(matingPopulationSize, cities);
 
-        Chromosome[] parents = stochasticParentSelection();
-        Chromosome[] competitors = Chromosome.crossfillRecombination(parents, matingPopulationSize);
-        chromosomes = eliteSurvivorSelection(competitors);
+    	// Choose parents from chromosomes
+        int[][] parents = elitestParentSelection(parentSelectionPressure);
+
+
+        int[][] newGenes = Chromosome.crossfillRecombination(parents, matingPopulationSize);
+        modifyPopulation(newPop, newGenes);
+        chromosomes = eliteSurvivorSelection(newPop);
     }
 
-    public static Chromosome[] stochasticParentSelection(){
+    public static Chromosome[] createPopulation(int size, City[] cities){
+    	Chromosome[] newPopulation = new Chromosome[size];
+    	for (int i = 0; i < newPopulation.length; i++) {
+    		newPopulation[i] = new Chromosome(cities);
+    	}
+    	return(newPopulation);
+    }
+
+    public static void modifyPopulation(Chromosome[] population, int[][] genomes){
+    	assert population.length == genomes.length;
+    	//System.out.println("modifying");
+    	// for (int j = 0; j < population[0].cityList.length; j++ ) {
+    	// 	System.out.print(population[0].cityList[j]+",");
+    	// }
+    	// System.out.println();
+
+    	int i = 0;
+    	for (Chromosome chr : population) {
+    		double before = chr.getCost();
+    		chr.setCityList(genomes[i]);
+    		i++;
+    		chr.calculateCost(cities);
+       		double after = chr.getCost();
+       		// assert after < before;
+    	}
+
+    	// for (int j = 0; j < population[0].cityList.length; j++ ) {
+    	// 	System.out.print(population[0].cityList[j]+",");
+    	// }
+    	//System.out.println();
+    }
+
+    public static int[][] stochasticParentSelection(){
     	// builds selectedParents with chosen parents
     	int numberOfParents = 10;
     	int parentsChosen = 0;
-    	int top = (int)(populationSize / 10.0);    	
+    	int top = (int)(populationSize / 10.0);
+    	assert top > 0;    	
+
     	int[] selectedParents = new int[numberOfParents];
     	boolean[] visited = new boolean[top];
     	Arrays.fill(visited, false);
+    	assert !visited[visited.length - 1];
+
     	int temp;
 
     	// Choose indexes from the top of the sorted chromosomes
     	while(parentsChosen < numberOfParents){
-    		temp = (int)(Math.random() * top) - 1;
+    		temp = (int)(Math.random() * top);
+    		assert temp >= 0;
+
 
     		if(!visited[temp]){
     			visited[temp] = true;
@@ -140,10 +178,24 @@ public class TSP {
     		}
     	}
 
-    	// build parent chromosome[]
-    	Chromosome[] parents = new Chromosome[numberOfParents];
+    	// build array of genomes
+    	int[][] parents = new int[numberOfParents][cities.length];
+        int i = 0;
+        for (int parentId : selectedParents) {
+        	parents[i] = chromosomes[parentId].cityList;
+        }
+
+    	return(parents);
+    }
+
+    public static int[][] elitestParentSelection(int numberOfParents){
+    	Chromosome.sortChromosomes(chromosomes, chromosomes.length);
+
+    	int[][] parents = new int[numberOfParents][cities.length];
+
     	for (int i = 0; i < numberOfParents ; i++) {
-    		parents[i] = chromosomes[selectedParents[i]];
+    		parents[i] = chromosomes[i].cityList;
+    		// System.out.println("cost of parent["+i+"]:" +chromosomes[i].getCost());
     	}
 
     	return(parents);
@@ -151,7 +203,16 @@ public class TSP {
 
     public static Chromosome[] eliteSurvivorSelection(Chromosome[] competingChromosomes){
     	Chromosome.sortChromosomes(competingChromosomes, competingChromosomes.length);
-    	Chromosome[] survivors = Arrays.copyOfRange(competingChromosomes, 0, populationSize);
+    	Chromosome[] survivors = new Chromosome[populationSize];
+    	for (int i = 0; i < populationSize ; i++) {
+    		survivors[i] = competingChromosomes[i];
+    	}
+
+		// System.out.println("survivors:");
+  //   	for (Chromosome survivor : survivors) {
+
+  //   		System.out.println(survivor.getCost());
+  //   	}
     	return(survivors);
     }
 

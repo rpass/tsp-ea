@@ -45,12 +45,13 @@ class Chromosome {
      *
      * @param cities A list of cities.
      */
-    void calculateCost(City[] cities) {
+    double calculateCost(City[] cities) {
         cost = 0;
         for (int i = 0; i < cityList.length - 1; i++) {
             double dist = cities[cityList[i]].proximity(cities[cityList[i + 1]]);
             cost += dist;
         }
+        return(cost);
     }
 
     /**
@@ -90,6 +91,12 @@ class Chromosome {
         cityList[index] = value;
     }
 
+    void setCityList(int[] clist){
+    	for (int i = 0; i < cityList.length; i++) {
+    		setCity(i, clist[i]);
+    	}
+    }
+
     /**
      * Sort the chromosomes by their cost.
      *
@@ -112,25 +119,45 @@ class Chromosome {
         }
     }
 
-    public static Chromosome[] crossfillPair(Chromosome parentA, Chromosome parentB){
-    	// Get each chromosome's encoding
-    	int[] a = parentA.cityList;
-    	int[] b = parentB.cityList;
+    public static int[][] crossfillPair(int[] a, int[] b){
+		assert a.length > 0;
+		assert a.length == b.length;
 
     	// For each chromosome, recombinate
     	int[] newa = new int[a.length];
 		int[] newb = new int[b.length];
-
+		// Arrays.fill(newa, 0);
+		// Arrays.fill(newb, 0);
 		int l = a.length;
 
+		// System.out.println("Before");
+		// System.out.print("a: ");
+		// for (int x : a) {
+		// 	System.out.print(x+",");
+		// }
+		// System.out.print("\nnewa: ");
+		// for (int x : newa) {
+		// 	System.out.print(x+",");
+		// }
+		// System.out.print("\nb: ");
+		// for (int x : b) {
+		// 	System.out.print(x+",");
+		// }
+		// System.out.print("\nnewb: ");
+		// for (int x : newb) {
+		// 	System.out.print(x+",");
+		// }
+		// System.out.println();
+
 		// Choose random position in array, p
-		int p = (int)(Math.random() * (l-1));
+		int p = (int)(Math.random() * l);
 
+		// System.out.println("p = " + p);
 		// Create visited arrays for O(k) lookup in contains
-		boolean[] visiteda = new boolean[parentA.cityList.length];
-		boolean[] visitedb = new boolean[parentB.cityList.length];
+		boolean[] visiteda = new boolean[l];
+		boolean[] visitedb = new boolean[l];
 
-		for (int i = 0; i < parentA.cityList.length - 1 ; i++ ) {
+		for (int i = 0; i < l; i++ ) {
 			visiteda[i] = false;
 			visitedb[i] = false;
 		}
@@ -149,78 +176,102 @@ class Chromosome {
 			}			
 		}		
 
-		// placekeepers
-		int ka = p;
-		int kb = p;
+		// for (int j : newa) {
+		// 	System.out.print(j+",");
+		// }
+		// System.out.println();
+		// for (int k : newb) {
+		// 	System.out.print(k+",");
+		// }
+		// System.out.println();
 
-		// fill remainder of chromosome with genes from other
-		// parent
-		for (int i = 0; i < l ; i++) {
-			if(!visiteda[b[i]]){
-				newa[ka] = b[i];
-				ka++;
-			} 
-			if(!visitedb[a[i]]){
-				newb[kb] = a[i];
-				kb++;
-			} 
+		for (int i = p; i < l; i++) {
+			int jb = 0;
+			int ja = 0;
+			while(jb<l && visiteda[b[jb]]){
+				jb++;
+			}
+			newa[i] = b[jb];
+			visiteda[b[jb]] = true;
+
+			while(ja<l && visitedb[a[ja]]){
+				ja++;
+			}
+			newb[i] = a[ja];
+			visitedb[a[ja]] = true;
 		}
 
-		// // Check that children visit each city
-		// boolean[] va = new boolean[cityCount];
-		// boolean[] vb = new boolean[cityCount];
-		// for (int i = 0; i <  ; ) {
-			
-		// }	
+		// System.out.println("After");
+		// System.out.print("a: ");
+		// for (int x : a) {
+		// 	System.out.print(x+",");
+		// }
+		// System.out.println("\nnewa: ");
+		// for (int x : newa) {
+		// 	System.out.print(x+",");
+		// }
+		// System.out.print("\nb: ");
+		// for (int x : b) {
+		// 	System.out.print(x+",");
+		// }
+		// System.out.println("\nnewb: ");
+		// for (int x : newb) {
+		// 	System.out.print(x+",");
+		// }
+		// System.out.println();
 
-		Chromosome childA = new Chromosome(parentA);
-		childA.setCities(newa);
-
-		Chromosome childB = new Chromosome(parentB);
-		childB.setCities(newb);
-
-		Chromosome[] children = {childA, childB};
+		int[][] children = {newa, newb};
 
 		return(children);
     }
 
-    public static Chromosome[] crossfillRecombination(Chromosome[] chromosomes, int desiredPopulationSize) {
+    public static int[][] crossfillRecombination(int[][] parents, int desiredPopulationSize) {
     	// Check if we have enough parents to make desired population
 
-    	// Check if there are an even number of chromosomes
-    	if(chromosomes.length % 2 != 0){
-    		System.out.println("crossfill failure, odd number of parents");
-    		return(0);
-    	} else {
+    	// Check if there are an even number of parents
+    	assert parents.length % 2 == 0;
+    	assert desiredPopulationSize > parents.length;
+    	assert parents.length > 0;
+    	assert desiredPopulationSize > 0;
 
-    		boolean[][] paired = new boolean[chromosomes.length][chromosomes.length];
-    		Chromosome[] childrenOfAB;
-    		Chromosome[] newPopulation = new Chromosome[desiredPopulationSize];
-    		for (int i = 0; i < chromosomes.length ; i++ ) {
-    			newPopulation[i] = chromosomes[i];
-    		}
+		boolean[][] paired = new boolean[parents.length][parents.length];
+		int[][] childrenOfAB;
+		int[][] newPopulation = new int[desiredPopulationSize][parents[0].length];
 
-    		int newPopSize = chromosomes.length;
+		// fill newPopulation with parent population
+		for (int i = 0; i < parents.length ; i++ ) {
+			newPopulation[i] = parents[i];
 
-    		while(newPopSize < desiredPopulationSize){
-    			int a = (int)(Math.random() * chromosomes.length) - 1;
-	    		int b = (int)(Math.random() * chromosomes.length) - 1;
+			// System.out.println("parent ["+i+"]");
+			// for (int ele : parents[i]) {
+			// 	System.out.print(ele + ",");
+			// }
+			// System.out.println();
+		}
 
-	  			if(a == b){ b++; }
-	  			else if(a > b){ int temp = a; a = b; b = temp; }
+		int newPopSize = parents.length;
 
-	  			if(paired[a][b]){
-	  				continue;
-	  			} else {
-	  				childrenOfAB = crossfillPair(chromosomes[a], chromosomes[b]);
-	  				newPopulation[newPopSize] = childrenOfAB[0];
-	  				newPopulation[newPopSize + 1] = childrenOfAB[1];
-	  				newPopSize += 2;
-	  				paired[a][b] = true;
-	  			}
-    		}
+		while(newPopSize < desiredPopulationSize){
+			int a = 0;
+			int b = 0;
+			while(a == b){
+				a = (int)(Math.random() * parents.length);
+				b = (int)(Math.random() * parents.length);
+			}
+  			
+  			if(a > b){ int temp = a; a = b; b = temp; }
 
-    		return(newPopulation);
+  			if(paired[a][b]){
+  				continue;
+  			} else {
+  				childrenOfAB = crossfillPair(parents[a], parents[b]);
+  				newPopulation[newPopSize] = childrenOfAB[0];
+  				newPopulation[newPopSize + 1] = childrenOfAB[1];
+  				newPopSize += 2;
+  				paired[a][b] = true;
+  			}	    		
 	    }
+	    
+	    return(newPopulation);
     }
 }
