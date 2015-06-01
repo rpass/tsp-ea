@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.Arrays;
 
 class Chromosome {
 
@@ -274,4 +275,82 @@ class Chromosome {
 	    
 	    return(newPopulation);
     }
+
+	public static int[] mutate(int[] a){
+		int arrayLength = a.length;
+
+		int[] p = threeRandomPoints(arrayLength);
+		int[] points = choose2(p[0], p[1], p[2]);
+		//points[2] -= (p[1] - p[0]);
+
+		ArrayList<Integer> arr = new ArrayList<Integer>();
+		ArrayList<Integer> temp = new ArrayList<Integer>();
+
+		for (int x : a) {
+			arr.add(x);
+		}
+
+		int subArrLength = points[1] - points[0] + 1;
+		int newP2 = points[2];
+		for (int i = 0; i < subArrLength ; i++) {
+			temp.add(arr.remove(points[0]));
+			if(points[2] >= points[1]){
+				newP2--;
+			}
+		}
+		int minCap = arr.size() + temp.size();
+		arr.ensureCapacity(minCap);
+		//System.out.println("t:" + temp + "\narr: " + arr);
+		for (int j = 0; j < subArrLength ; j++) {
+			arr.add(j + newP2, temp.remove(0));
+		}
+		//System.out.println("arr: " + arr);
+		Arrays.fill(a, -1);
+		for (int i = 0; i < arr.size(); i++ ) {
+			a[i] = arr.get(i);
+		}
+
+		//printa(a);
+		return(a);
+	}
+
+	public static int[] threeRandomPoints(int max){
+		int[] b = new int[3];
+
+		b[0] = (int)(Math.random() * max);
+		b[1] = (int)(Math.random() * max);
+		while(b[1] == b[0]){
+			b[1] = (int)(Math.random() * max);
+		}
+
+		b[2] = (int)(Math.random() * max);
+		while(b[2] == b[1] || b[2] == b[0]){
+			b[2] = (int)(Math.random() * max);
+		}
+
+		Arrays.sort(b);
+
+//		System.out.println("random points: ");
+		// for (int x : b) {
+		// 	System.out.print(x + ",");
+		// }
+//		System.out.println();
+		return(b);
+	}
+
+	public static int[] choose2(int a, int b, int c){
+		int bottle = (int)(Math.floor(Math.random()*2));
+		int[] pair = new int[3];
+		if(bottle == 1){
+			pair[0] = a;
+			pair[1] = b;
+			pair[2] = c;
+		} else {
+			pair[0] = b;
+			pair[1] = c;
+			pair[2] = a;
+		}
+
+		return(pair);
+	}
 }

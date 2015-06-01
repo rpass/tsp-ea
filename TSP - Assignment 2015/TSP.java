@@ -30,6 +30,9 @@ public class TSP {
      */
     protected static int matingPopulationSize;
 
+    protected static int parentSelectionPressure;
+
+    protected static int survivorSelectionPressure;
     /**
      * The part of the population selected for mating.
      */
@@ -104,8 +107,11 @@ public class TSP {
 
     public static void evolve() {
         //Write evolution code here.
-        int numberOfParents = (int)((1/2.0) * populationSize);
-        matingPopulationSize = 450;
+        int numberOfParents = 100;//(int)((1/2.0) * populationSize);
+        matingPopulationSize = 700;
+        double mutationProbability = 0.3;
+        parentSelectionPressure = 10;
+        survivorSelectionPressure = 10;
 
         // Create random population
     	Chromosome[] newPop = createPopulation(matingPopulationSize, cities);
@@ -116,6 +122,7 @@ public class TSP {
 
         int[][] newGenes = Chromosome.crossfillRecombination(parents, matingPopulationSize);
         modifyPopulation(newPop, newGenes);
+        mutatePopulation(newPop, mutationProbability);
         chromosomes = tournamentSurvivorSelection(newPop);
     }
 
@@ -126,6 +133,19 @@ public class TSP {
     	}
     	return(newPopulation);
     }
+
+	public static void mutatePopulation(Chromosome[] population, double mutationProbability){
+		int[] genome;
+		double dice;
+		for (Chromosome chrom : population) {
+			dice = (Math.random());
+			if(dice < mutationProbability){
+				genome = chrom.cityList; 
+				chrom.setCityList(Chromosome.mutate(genome));
+				chrom.calculateCost(cities);
+			}
+		}
+	}
 
     public static void modifyPopulation(Chromosome[] population, int[][] genomes){
     	assert population.length == genomes.length;
@@ -209,16 +229,13 @@ public class TSP {
     	}
 
 		// System.out.println("survivors:");
-  //   	for (Chromosome survivor : survivors) {
 
-  //   		System.out.println(survivor.getCost());
-  //   	}
     	return(survivors);
     }
 
     public static int[][] tournamentParentSelection(int numberOfParents){
 
-    	int selectionPressure = 5;
+    	int selectionPressure = parentSelectionPressure;
     	Chromosome[] champions = tournamentSelection(chromosomes, selectionPressure, numberOfParents);
 
     	int[][] parentGenes = new int[numberOfParents][cities.length];
@@ -233,7 +250,7 @@ public class TSP {
     	for (int i = 0; i < candidates.length ; i++) {
     		candidates[i] = i;
     	}
-    	int selectionPressure = 5;
+    	int selectionPressure = survivorSelectionPressure;
     	int numberOfChampions = populationSize;
 
     	Chromosome[] champions = tournamentSelection(competingChromosomes, selectionPressure, numberOfChampions);
@@ -242,7 +259,7 @@ public class TSP {
     }
 
 	public static Chromosome[] tournamentSelection(Chromosome[] candidateChromosomes, int selectionPressure, int numberOfChampions){
-		System.out.println("candidate pool: " + candidateChromosomes.length);
+		//System.out.println("candidate pool: " + candidateChromosomes.length);
 		
 		// keeps track of candidates already chosen
 		boolean[] picked = new boolean[candidateChromosomes.length];

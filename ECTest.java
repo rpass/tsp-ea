@@ -1,17 +1,31 @@
 import java.util.Arrays;
+import java.util.ArrayList;
 
 public class ECTest{
 	public static void main(String[] args){
+		
+		/**
+		*	Testing ArrayList3PointExchangeMutation
+		**/
+
+		int[] ex = new int[500];
+		for (int i = 0; i < ex.length ; i++ ) {
+			ex[i] = i;
+		}
+
+		int[] a = {0,1,2,3,4,5,6,7,8,9};
+		mutate(ex);
+		mutate(a);
 
 		/**
 		*	Testing insertArray
 		**/
 
-		int[] a = {0,1,2,3,4,5,6,7,8,9};
+		// int[] a = {0,1,2,3,4,5,6,7,8,9};
 
-		int[][] wat = removeSubarray(a, 2, 6);
+		// int[][] wat = removeSubarray(a, 2, 6);
 
-		int[] c = insertArray(wat[0], wat[1], 3);
+		// int[] c = insertArray(wat[0], wat[1], 3);
 
 		/**
 		*	Testing removeSubarray
@@ -135,7 +149,43 @@ public class ECTest{
 
 	// 	return(champions);
 	// }
+	public static int[] mutate(int[] a){
+		int arrayLength = a.length;
 
+		int[] p = threeRandomPoints(arrayLength);
+		int[] points = choose2(p[0], p[1], p[2]);
+		//points[2] -= (p[1] - p[0]);
+
+		ArrayList<Integer> arr = new ArrayList<Integer>();
+		ArrayList<Integer> temp = new ArrayList<Integer>();
+
+		for (int x : a) {
+			arr.add(x);
+		}
+
+		int subArrLength = points[1] - points[0] + 1;
+		int newP2 = points[2];
+		for (int i = 0; i < subArrLength ; i++) {
+			temp.add(arr.remove(points[0]));
+			if(points[2] >= points[1]){
+				newP2--;
+			}
+		}
+		int minCap = arr.size() + temp.size();
+		arr.ensureCapacity(minCap);
+		//System.out.println("t:" + temp + "\narr: " + arr);
+		for (int j = 0; j < subArrLength ; j++) {
+			arr.add(j + newP2, temp.remove(0));
+		}
+		//System.out.println("arr: " + arr);
+		Arrays.fill(a, -1);
+		for (int i = 0; i < arr.size(); i++ ) {
+			a[i] = arr.get(i);
+		}
+
+		printa(a);
+		return(a);
+	}
 	public static int[][] removeSubarray(int[] a, int p1, int p2){
 		assert a.length > 0;
 		assert p1 < p2;
@@ -160,20 +210,10 @@ public class ECTest{
 		return(bandc);
 	}
 
-	public static int[] insertArray(int[] a, int[] b, int pos){
-		int[] c = new int[a.length + b.length];
+	public static int[] rearrangeArray(int[] original, int[] sub, int pos){
+		int[] c = new int[original.length + sub.length];
 
-		for (int i = 0; i < pos; i++ ) {
-			c[i] = a[i];
-		}
 
-		for (int j = 0; j < b.length; j++){
-			c[pos + j] = b[j];
-		}
-
-		for (int k = pos; k < c.length; k++ ) {
-			c[k + b.length] = a[k];
-		}
 
 		return(c);
 	}
@@ -185,8 +225,10 @@ public class ECTest{
 		}
 		System.out.println();
 	}
+
 	public static int[] threeRandomPoints(int max){
 		int[] b = new int[3];
+		//max--;
 
 		b[0] = (int)(Math.random() * max);
 		b[1] = (int)(Math.random() * max);
@@ -201,12 +243,29 @@ public class ECTest{
 
 		Arrays.sort(b);
 
-		System.out.println("random points: ");
-		for (int x : b) {
-			System.out.print(x + ",");
-		}
-		System.out.println();
+//		System.out.println("random points: ");
+		// for (int x : b) {
+		// 	System.out.print(x + ",");
+		// }
+//		System.out.println();
 		return(b);
+	}
+
+	public static int[] choose2(int a, int b, int c){
+		int bottle = (int)(Math.floor(Math.random()*2));
+		int[] pair = new int[3];
+		if(bottle == 1){
+			pair[0] = a;
+			pair[1] = b;
+			pair[2] = c;
+		} else {
+			pair[0] = b;
+			pair[1] = c;
+			pair[2] = a;
+		}
+		// System.out.println("pair: ");
+		// printa(pair);
+		return(pair);
 	}
 
 	// public static int[] choose3ints(int m){
