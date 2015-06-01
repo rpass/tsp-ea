@@ -242,35 +242,53 @@ class Chromosome {
 		// fill newPopulation with parent population
 		for (int i = 0; i < parents.length ; i++ ) {
 			newPopulation[i] = parents[i];
-
-			// System.out.println("parent ["+i+"]");
-			// for (int ele : parents[i]) {
-			// 	System.out.print(ele + ",");
-			// }
-			// System.out.println();
 		}
 
 		int newPopSize = parents.length;
 
-		while(newPopSize < desiredPopulationSize){
-			int a = 0;
-			int b = 0;
-			while(a == b){
+		// while(newPopSize < desiredPopulationSize){
+		// 	int a = 0;
+		// 	int b = 0;
+		// 	while(a == b){
+		// 		a = (int)(Math.random() * parents.length);
+		// 		b = (int)(Math.random() * parents.length);
+		// 	}
+  			
+  // 			if(a > b){ int temp = a; a = b; b = temp; }
+
+  // 			if(paired[a][b]){
+  // 				continue;
+  // 			} else {
+  // 				childrenOfAB = crossfillPair(parents[a], parents[b]);
+  // 				newPopulation[newPopSize] = childrenOfAB[0];
+  // 				newPopulation[newPopSize + 1] = childrenOfAB[1];
+  // 				newPopSize += 2;
+  // 				paired[a][b] = true;
+  // 			}	    		
+	 //    }
+
+	    int a;
+	    int b;
+	    int temp;
+
+	    while(newPopSize < desiredPopulationSize){
+			a = (int)(Math.random() * parents.length);
+			b = (int)(Math.random() * parents.length);
+			while(paired[a][b] || a == b){
 				a = (int)(Math.random() * parents.length);
 				b = (int)(Math.random() * parents.length);
 			}
-  			
-  			if(a > b){ int temp = a; a = b; b = temp; }
+			if(a>b){
+				temp = b;
+				b = a;
+				a = temp;
+			}
 
-  			if(paired[a][b]){
-  				continue;
-  			} else {
-  				childrenOfAB = crossfillPair(parents[a], parents[b]);
-  				newPopulation[newPopSize] = childrenOfAB[0];
-  				newPopulation[newPopSize + 1] = childrenOfAB[1];
-  				newPopSize += 2;
-  				paired[a][b] = true;
-  			}	    		
+			childrenOfAB = crossfillPair(parents[a], parents[b]);
+			newPopulation[newPopSize] = childrenOfAB[0];
+			newPopulation[newPopSize + 1] = childrenOfAB[1];
+			newPopSize += 2;
+			paired[a][b] = true;
 	    }
 	    
 	    return(newPopulation);
@@ -330,11 +348,6 @@ class Chromosome {
 
 		Arrays.sort(b);
 
-//		System.out.println("random points: ");
-		// for (int x : b) {
-		// 	System.out.print(x + ",");
-		// }
-//		System.out.println();
 		return(b);
 	}
 

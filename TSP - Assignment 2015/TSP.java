@@ -29,6 +29,7 @@ public class TSP {
      * The part of the population eligable for mateing.
      */
     protected static int matingPopulationSize;
+    protected static Chromosome[] newPop;
 
     protected static int parentSelectionPressure;
 
@@ -107,24 +108,26 @@ public class TSP {
 
     public static void evolve() {
         //Write evolution code here.
-        int numberOfParents = 100;//(int)((1/2.0) * populationSize);
-        matingPopulationSize = 700;
+        int numberOfParents = 50;//(int)((1/2.0) * populationSize);
         double mutationProbability = 0.3;
-        parentSelectionPressure = 10;
-        survivorSelectionPressure = 10;
-
-        // Create random population
-    	Chromosome[] newPop = createPopulation(matingPopulationSize, cities);
+        parentSelectionPressure = 150;
+        survivorSelectionPressure = 150;
 
     	// Choose parents from chromosomes
         int[][] parents = tournamentParentSelection(numberOfParents);
-
-
         int[][] newGenes = Chromosome.crossfillRecombination(parents, matingPopulationSize);
         modifyPopulation(newPop, newGenes);
         mutatePopulation(newPop, mutationProbability);
         chromosomes = tournamentSurvivorSelection(newPop);
     }
+
+	public static void printa(int[] a){
+		System.out.print("> ");
+		for (int x : a) {
+			System.out.print(x + " ");
+		}
+		System.out.println();
+	}
 
     public static Chromosome[] createPopulation(int size, City[] cities){
     	Chromosome[] newPopulation = new Chromosome[size];
@@ -406,6 +409,10 @@ public class TSP {
 
                     generation = 0;
                     double thisCost = 0.0;
+
+                    // Create random population
+                    matingPopulationSize = 1000;
+					newPop = createPopulation(matingPopulationSize, cities);
 
                     while (generation < 100) {
                         evolve();                   // The population hasn't been evaluated?
